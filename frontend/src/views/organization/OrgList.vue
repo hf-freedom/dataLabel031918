@@ -34,7 +34,7 @@
           <el-tree-select
             v-model="form.parentId"
             :data="orgTree"
-            :props="{ label: 'name', value: 'id', disabled: 'disabled' }"
+            :props="{ label: 'name', value: 'id' }"
             placeholder="请选择上级机构"
             check-strictly
             clearable
@@ -84,16 +84,43 @@ const rules = {
 const editingId = ref(null)
 
 const orgTree = computed(() => {
+  if (isEdit.value && editingId.value) {
+    const excludeIds = getAllChildrenIds(orgList.value, editingId.value)
+    excludeIds.push(editingId.value)
+    return buildTreeWithExclude(orgList.value, 0, excludeIds)
+  }
   return buildTree(orgList.value, 0)
 })
+
+const getAllChildrenIds = (list, orgId) => {
+  const childrenIds = []
+  const collectChildren = (parentId) => {
+    list.forEach(item => {
+      if (item.parentId === parentId) {
+        childrenIds.push(item.id)
+        collectChildren(item.id)
+      }
+    })
+  }
+  collectChildren(orgId)
+  return childrenIds
+}
 
 const buildTree = (list, parentId) => {
   return list
     .filter(item => item.parentId === parentId || (!item.parentId && parentId === 0))
     .map(item => ({
       ...item,
-      disabled: isEdit.value && item.id === editingId.value,
       children: buildTree(list, item.id)
+    }))
+}
+
+const buildTreeWithExclude = (list, parentId, excludeIds) => {
+  return list
+    .filter(item => (item.parentId === parentId || (!item.parentId && parentId === 0)) && !excludeIds.includes(item.id))
+    .map(item => ({
+      ...item,
+      children: buildTreeWithExclude(list, item.id, excludeIds)
     }))
 }
 
