@@ -1,0 +1,1 @@
+import{x as r}from"./index-Bpqr87PW.js";const g={getList(){return r.get("/api/org/list")},getTree(){return r.get("/api/org/tree")},getById(e){return r.get(`/api/org/${e}`)},save(e){return r.post("/api/org/save",e)},delete(e){return r.delete(`/api/org/${e}`)},getOrgIdsByRoleId(e){return r.get(`/api/org/role/${e}`)}};export{g as o};

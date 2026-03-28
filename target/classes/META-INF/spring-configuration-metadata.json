@@ -1,0 +1,22 @@
+{
+  "groups": [
+    {
+      "name": "admin",
+      "type": "com.datalabel.config.AdminConfig",
+      "sourceType": "com.datalabel.config.AdminConfig"
+    }
+  ],
+  "properties": [
+    {
+      "name": "admin.password",
+      "type": "java.lang.String",
+      "sourceType": "com.datalabel.config.AdminConfig"
+    },
+    {
+      "name": "admin.username",
+      "type": "java.lang.String",
+      "sourceType": "com.datalabel.config.AdminConfig"
+    }
+  ],
+  "hints": []
+}
