@@ -84,7 +84,14 @@ const rules = {
 const editingId = ref(null)
 
 const orgTree = computed(() => {
-  return buildTree(orgList.value, 0)
+  // 编辑时，过滤掉自己和自己的后代节点
+  let filteredList = orgList.value
+  if (isEdit.value && editingId.value) {
+    const excludeIds = getDescendantIds(editingId.value)
+    excludeIds.push(editingId.value)
+    filteredList = orgList.value.filter(item => !excludeIds.includes(item.id))
+  }
+  return buildTree(filteredList, 0)
 })
 
 const buildTree = (list, parentId) => {
@@ -94,6 +101,17 @@ const buildTree = (list, parentId) => {
       ...item,
       children: buildTree(list, item.id)
     }))
+}
+
+// 获取指定机构的所有后代ID
+const getDescendantIds = (orgId) => {
+  const ids = []
+  const children = orgList.value.filter(item => item.parentId === orgId)
+  for (const child of children) {
+    ids.push(child.id)
+    ids.push(...getDescendantIds(child.id))
+  }
+  return ids
 }
 
 const loadData = async () => {
@@ -145,13 +163,25 @@ const showEditDialog = (row) => {
 
 const handleSubmit = async () => {
   await formRef.value.validate()
+  
+  // 前端校验：不能将自己设置为父机构
+  if (isEdit.value && form.id === form.parentId) {
+    ElMessage.error('不能将自己设置为父机构')
+    return
+  }
+  
   try {
-    await orgApi.save(form)
-    ElMessage.success('保存成功')
-    dialogVisible.value = false
-    loadData()
+    const res = await orgApi.save(form)
+    if (res.code === 200) {
+      ElMessage.success('保存成功')
+      dialogVisible.value = false
+      loadData()
+    } else {
+      ElMessage.error(res.message || '保存失败')
+    }
   } catch (e) {
     console.error('Save failed:', e)
+    ElMessage.error(e.response?.data?.message || '保存失败')
   }
 }
 

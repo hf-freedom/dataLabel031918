@@ -45,10 +45,13 @@ public class OrganizationController {
     @PostMapping("/save")
     @RequireApiPermission("org:save")
     public Result<String> save(@RequestBody Organization org) {
+        if (org.getId() != null && org.getParentId() != null && org.getParentId().equals(org.getId())) {
+            return Result.error("不能将自己设置为父机构");
+        }
         if (organizationService.save(org)) {
             return Result.success("保存成功", null);
         }
-        return Result.error("保存失败");
+        return Result.error("保存失败，可能是无效的父机构设置");
     }
     
     @DeleteMapping("/{id}")
