@@ -34,7 +34,7 @@
           <el-tree-select
             v-model="form.parentId"
             :data="orgTree"
-            :props="{ label: 'name', value: 'id' }"
+            :props="{ label: 'name', value: 'id', disabled: 'disabled' }"
             placeholder="请选择上级机构"
             check-strictly
             clearable
@@ -92,6 +92,7 @@ const buildTree = (list, parentId) => {
     .filter(item => item.parentId === parentId || (!item.parentId && parentId === 0))
     .map(item => ({
       ...item,
+      disabled: isEdit.value && item.id === editingId.value,
       children: buildTree(list, item.id)
     }))
 }
@@ -145,6 +146,10 @@ const showEditDialog = (row) => {
 
 const handleSubmit = async () => {
   await formRef.value.validate()
+  if (isEdit.value && form.parentId === form.id) {
+    ElMessage.error('不能将自己设为父机构')
+    return
+  }
   try {
     await orgApi.save(form)
     ElMessage.success('保存成功')
@@ -152,6 +157,7 @@ const handleSubmit = async () => {
     loadData()
   } catch (e) {
     console.error('Save failed:', e)
+    ElMessage.error('保存失败')
   }
 }
 
