@@ -33,7 +33,7 @@ public class DataPermissionUtils {
             return Collections.emptyList();
         }
         
-        return roleOrganizationService.findOrgIdsByRoleId(roleId);
+        return roleOrganizationService.findAllOrgIdsByRoleId(roleId);
     }
     
     public boolean hasOrgPermission(User user, Long orgId) {
