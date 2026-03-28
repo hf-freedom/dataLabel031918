@@ -33,7 +33,7 @@
         <el-form-item label="上级机构" prop="parentId">
           <el-tree-select
             v-model="form.parentId"
-            :data="orgTree"
+            :data="filteredOrgTree"
             :props="{ label: 'name', value: 'id' }"
             placeholder="请选择上级机构"
             check-strictly
@@ -85,6 +85,29 @@ const editingId = ref(null)
 
 const orgTree = computed(() => {
   return buildTree(orgList.value, 0)
+})
+
+const getAllDescendantIds = (orgId) => {
+  const ids = [orgId]
+  const findChildren = (id) => {
+    orgList.value.forEach(item => {
+      if (item.parentId === id) {
+        ids.push(item.id)
+        findChildren(item.id)
+      }
+    })
+  }
+  findChildren(orgId)
+  return ids
+}
+
+const filteredOrgTree = computed(() => {
+  if (!isEdit.value || !editingId.value) {
+    return orgTree.value
+  }
+  const excludeIds = getAllDescendantIds(editingId.value)
+  const filteredList = orgList.value.filter(item => !excludeIds.includes(item.id))
+  return buildTree(filteredList, 0)
 })
 
 const buildTree = (list, parentId) => {

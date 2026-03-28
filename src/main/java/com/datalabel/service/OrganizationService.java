@@ -31,7 +31,10 @@ public class OrganizationService {
         if (org.getId() == null) {
             return organizationMapper.insert(org) > 0;
         } else {
-            if (org.getParentId() != null && !org.getParentId().equals(org.getId()) && isDescendant(org.getId(), org.getParentId())) {
+            if (org.getParentId() != null && org.getParentId().equals(org.getId())) {
+                return false;
+            }
+            if (org.getParentId() != null && isDescendant(org.getId(), org.getParentId())) {
                 return false;
             }
             return organizationMapper.update(org) > 0;

@@ -1,11 +1,16 @@
 package com.datalabel.service;
 
+import com.datalabel.entity.Organization;
 import com.datalabel.entity.RoleOrganization;
+import com.datalabel.mapper.OrganizationMapper;
 import com.datalabel.mapper.RoleOrganizationMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class RoleOrganizationService {
@@ -13,12 +18,34 @@ public class RoleOrganizationService {
     @Autowired
     private RoleOrganizationMapper roleOrganizationMapper;
     
+    @Autowired
+    private OrganizationMapper organizationMapper;
+    
     public List<RoleOrganization> findByRoleId(Long roleId) {
         return roleOrganizationMapper.findByRoleId(roleId);
     }
     
     public List<Long> findOrgIdsByRoleId(Long roleId) {
         return roleOrganizationMapper.findOrgIdsByRoleId(roleId);
+    }
+    
+    public List<Long> findAllOrgIdsByRoleId(Long roleId) {
+        List<Long> directOrgIds = roleOrganizationMapper.findOrgIdsByRoleId(roleId);
+        Set<Long> allOrgIds = new HashSet<>(directOrgIds);
+        for (Long orgId : directOrgIds) {
+            findAllChildOrgIds(orgId, allOrgIds);
+        }
+        return new ArrayList<>(allOrgIds);
+    }
+    
+    private void findAllChildOrgIds(Long parentId, Set<Long> allOrgIds) {
+        List<Organization> children = organizationMapper.findByParentId(parentId);
+        for (Organization child : children) {
+            if (!allOrgIds.contains(child.getId())) {
+                allOrgIds.add(child.getId());
+                findAllChildOrgIds(child.getId(), allOrgIds);
+            }
+        }
     }
     
     public boolean bindOrgToRole(Long roleId, Long orgId) {
