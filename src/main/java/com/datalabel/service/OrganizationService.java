@@ -31,8 +31,13 @@ public class OrganizationService {
         if (org.getId() == null) {
             return organizationMapper.insert(org) > 0;
         } else {
-            if (org.getParentId() != null && !org.getParentId().equals(org.getId()) && isDescendant(org.getId(), org.getParentId())) {
-                return false;
+            if (org.getParentId() != null) {
+                if (org.getParentId().equals(org.getId())) {
+                    return false;
+                }
+                if (isDescendant(org.getId(), org.getParentId())) {
+                    return false;
+                }
             }
             return organizationMapper.update(org) > 0;
         }
@@ -66,5 +71,22 @@ public class OrganizationService {
             }
         }
         return false;
+    }
+    
+    public List<Long> findAllChildrenIds(Long orgId) {
+        Set<Long> childrenIds = new HashSet<>();
+        collectChildrenIds(orgId, childrenIds);
+        return new java.util.ArrayList<>(childrenIds);
+    }
+    
+    private void collectChildrenIds(Long currentId, Set<Long> childrenIds) {
+        if (currentId == null) {
+            return;
+        }
+        List<Organization> children = organizationMapper.findByParentId(currentId);
+        for (Organization child : children) {
+            childrenIds.add(child.getId());
+            collectChildrenIds(child.getId(), childrenIds);
+        }
     }
 }

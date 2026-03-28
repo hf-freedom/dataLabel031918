@@ -84,8 +84,27 @@ const rules = {
 const editingId = ref(null)
 
 const orgTree = computed(() => {
+  if (isEdit.value && editingId.value) {
+    const excludeIds = getAllChildrenIds(orgList.value, editingId.value)
+    excludeIds.push(editingId.value)
+    return buildTreeWithExclude(orgList.value, 0, excludeIds)
+  }
   return buildTree(orgList.value, 0)
 })
+
+const getAllChildrenIds = (list, orgId) => {
+  const childrenIds = []
+  const collectChildren = (parentId) => {
+    list.forEach(item => {
+      if (item.parentId === parentId) {
+        childrenIds.push(item.id)
+        collectChildren(item.id)
+      }
+    })
+  }
+  collectChildren(orgId)
+  return childrenIds
+}
 
 const buildTree = (list, parentId) => {
   return list
@@ -93,6 +112,15 @@ const buildTree = (list, parentId) => {
     .map(item => ({
       ...item,
       children: buildTree(list, item.id)
+    }))
+}
+
+const buildTreeWithExclude = (list, parentId, excludeIds) => {
+  return list
+    .filter(item => (item.parentId === parentId || (!item.parentId && parentId === 0)) && !excludeIds.includes(item.id))
+    .map(item => ({
+      ...item,
+      children: buildTreeWithExclude(list, item.id, excludeIds)
     }))
 }
 
@@ -145,6 +173,10 @@ const showEditDialog = (row) => {
 
 const handleSubmit = async () => {
   await formRef.value.validate()
+  if (isEdit.value && form.parentId === form.id) {
+    ElMessage.error('不能将自己设为父机构')
+    return
+  }
   try {
     await orgApi.save(form)
     ElMessage.success('保存成功')
@@ -152,6 +184,7 @@ const handleSubmit = async () => {
     loadData()
   } catch (e) {
     console.error('Save failed:', e)
+    ElMessage.error('保存失败')
   }
 }
 
