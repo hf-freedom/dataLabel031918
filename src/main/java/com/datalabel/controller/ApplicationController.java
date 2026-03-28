@@ -10,7 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/application")
@@ -30,13 +32,13 @@ public class ApplicationController {
             return Result.error(401, "未登录");
         }
         
-        List<Long> accessibleOrgIds = dataPermissionUtils.getAccessibleOrgIds(currentUser);
+        Set<Long> accessibleOrgIds = dataPermissionUtils.getAccessibleOrgIdsWithChildren(currentUser);
         List<Application> applications;
         
         if (accessibleOrgIds == null) {
             applications = applicationService.findAll();
         } else {
-            applications = applicationService.findByOrganizationIds(accessibleOrgIds);
+            applications = applicationService.findByOrganizationIds(new ArrayList<>(accessibleOrgIds));
         }
         
         return Result.success(applications);

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -30,7 +31,7 @@ public class UserController {
             return Result.error(401, "未登录");
         }
         
-        List<Long> accessibleOrgIds = dataPermissionUtils.getAccessibleOrgIds(currentUser);
+        Set<Long> accessibleOrgIds = dataPermissionUtils.getAccessibleOrgIdsWithChildren(currentUser);
         List<User> users;
         
         if (accessibleOrgIds == null) {

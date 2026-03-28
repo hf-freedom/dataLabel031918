@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import javax.servlet.http.HttpSession;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class DataPermissionUtils {
@@ -36,6 +37,23 @@ public class DataPermissionUtils {
         return roleOrganizationService.findOrgIdsByRoleId(roleId);
     }
     
+    public Set<Long> getAccessibleOrgIdsWithChildren(User user) {
+        if (user == null) {
+            return Collections.emptySet();
+        }
+        
+        if (isAdmin(user)) {
+            return null;
+        }
+        
+        Long roleId = user.getRoleId();
+        if (roleId == null) {
+            return Collections.emptySet();
+        }
+        
+        return roleOrganizationService.findAllOrgIdsByRoleId(roleId);
+    }
+    
     public boolean hasOrgPermission(User user, Long orgId) {
         if (orgId == null) {
             return false;
@@ -45,7 +63,7 @@ public class DataPermissionUtils {
             return true;
         }
         
-        List<Long> orgIds = getAccessibleOrgIds(user);
+        Set<Long> orgIds = getAccessibleOrgIdsWithChildren(user);
         return orgIds.contains(orgId);
     }
     

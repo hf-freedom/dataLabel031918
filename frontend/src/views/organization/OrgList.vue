@@ -83,16 +83,27 @@ const rules = {
 
 const editingId = ref(null)
 
+const getDescendantIds = (orgId) => {
+  const ids = [orgId]
+  const children = orgList.value.filter(item => item.parentId === orgId)
+  children.forEach(child => {
+    ids.push(...getDescendantIds(child.id))
+  })
+  return ids
+}
+
 const orgTree = computed(() => {
-  return buildTree(orgList.value, 0)
+  const excludeIds = isEdit.value && editingId.value ? getDescendantIds(editingId.value) : []
+  return buildTree(orgList.value, 0, excludeIds)
 })
 
-const buildTree = (list, parentId) => {
+const buildTree = (list, parentId, excludeIds = []) => {
   return list
+    .filter(item => !excludeIds.includes(item.id))
     .filter(item => item.parentId === parentId || (!item.parentId && parentId === 0))
     .map(item => ({
       ...item,
-      children: buildTree(list, item.id)
+      children: buildTree(list, item.id, excludeIds)
     }))
 }
 

@@ -5,7 +5,9 @@ import com.datalabel.mapper.RoleOrganizationMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class RoleOrganizationService {
@@ -13,12 +15,24 @@ public class RoleOrganizationService {
     @Autowired
     private RoleOrganizationMapper roleOrganizationMapper;
     
+    @Autowired
+    private OrganizationService organizationService;
+    
     public List<RoleOrganization> findByRoleId(Long roleId) {
         return roleOrganizationMapper.findByRoleId(roleId);
     }
     
     public List<Long> findOrgIdsByRoleId(Long roleId) {
         return roleOrganizationMapper.findOrgIdsByRoleId(roleId);
+    }
+    
+    public Set<Long> findAllOrgIdsByRoleId(Long roleId) {
+        List<Long> directOrgIds = roleOrganizationMapper.findOrgIdsByRoleId(roleId);
+        Set<Long> allOrgIds = new HashSet<>();
+        for (Long orgId : directOrgIds) {
+            allOrgIds.addAll(organizationService.findAllDescendantIds(orgId));
+        }
+        return allOrgIds;
     }
     
     public boolean bindOrgToRole(Long roleId, Long orgId) {
